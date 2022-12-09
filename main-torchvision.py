@@ -43,10 +43,10 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
             [transforms.ToTensor(), transforms.Resize([28, 28]),
             transforms.Normalize((0.5), (0.5))])
    
-    train_dataset = torchvision.datasets.MNIST(root='./data', train=True,
+    train_dataset = torchvision.datasets.CIFAR10(root='./data', train=True,
                                             download=True, transform=transform)
 
-    test_dataset = torchvision.datasets.MNIST(root='./data', train=False,
+    test_dataset = torchvision.datasets.CIFAR10(root='./data', train=False,
                                            download=False, transform=transform)
 
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
@@ -55,8 +55,8 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
                                              shuffle=False)
 
-    classes = ('plane', 'car', 'bird', 'cat',
-               'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+    #classes = ('plane', 'car', 'bird', 'cat',
+           #    'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     
     #train_loader = get_mnist_loader(train=True)
     #test_loader = get_mnist_loader(train=False)
@@ -65,7 +65,7 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
     ############## TENSORBOARD ########################
     examples = iter(test_loader) 
     example_data, example_targets = examples.next()
-    writer.add_graph(model, example_data)#.reshape(-1,[3,28,28]))
+    writer.add_graph(model, example_data)
     #writer.close()
     #sys.exit()
     use_cuda = torch.cuda.is_available()
@@ -107,4 +107,5 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
 
 if __name__ == '__main__':
     # train includes test phase at each epoch 
-    train(n_epochs=80,nInputPlane=1, tcslbcnn_depth=15,batch_size=16, learning_rate=1e-3, momentum=0.9, weight_decay=1e-4, lr_scheduler_step=30)
+    # nInputPlane is the number of channel of the images, nInputPlane for MNIST is 1 , CIFAR10 is 3, etc.
+    train(n_epochs=80,nInputPlane=3, tcslbcnn_depth=15,batch_size=16, learning_rate=1e-3, momentum=0.9, weight_decay=1e-4, lr_scheduler_step=30)
