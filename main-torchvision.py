@@ -63,7 +63,7 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
         
     model = TCSLBCNN(depth=tcslbcnn_depth,nInputPlane=nInputPlane)
     ############## TENSORBOARD ########################
-    examples = iter(test_loader)
+    examples = iter(test_loader) 
     example_data, example_targets = examples.next()
     writer.add_graph(model, example_data)#.reshape(-1,[3,28,28]))
     #writer.close()
