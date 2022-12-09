@@ -106,5 +106,5 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
     
 
 if __name__ == '__main__':
-    # train includes test phase at each epoch
+    # train includes test phase at each epoch 
     train(n_epochs=80,nInputPlane=1, tcslbcnn_depth=15,batch_size=16, learning_rate=1e-3, momentum=0.9, weight_decay=1e-4, lr_scheduler_step=30)

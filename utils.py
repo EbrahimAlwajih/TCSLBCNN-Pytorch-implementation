@@ -9,7 +9,7 @@ def get_mnist_loader(train=True, batch_size=256):
     """
     :param train: train or test fold?
     :param batch_size: batch size, int
-    :return: MNIST loader
+    :return: MNIST loader   
     """
     transform = transforms.Compose(
         [transforms.ToTensor(),

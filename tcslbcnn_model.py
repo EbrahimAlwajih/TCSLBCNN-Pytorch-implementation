@@ -28,12 +28,12 @@ class ConvTCSLBP(nn.Conv2d):
         
         
         binary_weights = binary_weights.view(self.nOutputPlane,self.nInputPlane,self.kW,self.kW)
-       # self.CSLBCNN.weight = Parameter(self.binary_weights)
+       # self.CSLBCNN.weight = Parameter(self.binary_weights) 
         
         
       
         weights.data = binary_weights
-        #print (weights.data)
+        #print (weights.data) 
         weights.requires_grad_(False)
 
 
