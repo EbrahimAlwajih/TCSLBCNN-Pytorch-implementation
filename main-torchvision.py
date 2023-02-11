@@ -95,8 +95,8 @@ def train(n_epochs=50,nInputPlane=3, tcslbcnn_depth=2, batch_size=256, learning_
         accuracy_train = calc_accuracy(model, loader=train_loader)
         accuracy_test = calc_accuracy(model, loader=test_loader)
         print("Epoch {} accuracy: train={:.3f}, test={:.4f}".format(epoch, accuracy_train, accuracy_test))
-        if accuracy_train > best_accuracy:
-            best_accuracy = accuracy_train
+        if accuracy_test > best_accuracy:
+            best_accuracy = accuracy_test
             torch.save((tcslbcnn_depth, model.state_dict()), MODEL_PATH)
         scheduler.step(epoch=epoch)
         # print(model.chained_blocks[0].conv_tcslbp.weight)
