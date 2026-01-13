@@ -25,3 +25,5 @@ runs/
 Thumbs.db
 .vscode/
 .idea/
+
+src/*.egg-info/
