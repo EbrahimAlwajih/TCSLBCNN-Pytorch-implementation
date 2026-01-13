@@ -27,3 +27,20 @@ Thumbs.db
 .idea/
 
 src/*.egg-info/
+
+# Build / packaging artifacts
+*.egg-info/
+src/*.egg-info/
+build/
+dist/
+
+# Virtualenv
+.venv/
+
+# Runtime artifacts
+data/
+artifacts/
+runs/
+checkpoints/
+*.pt
+*.pth
