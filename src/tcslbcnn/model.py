@@ -1,9 +1,10 @@
-﻿"""
+"""
 Thin wrapper so the project has an importable package.
 Gradually move logic from repo root files into src/tcslbcnn/.
 """
-from pathlib import Path
+
 import importlib.util
+from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[2]
 _LEGACY = _ROOT / "tcslbcnn_model.py"

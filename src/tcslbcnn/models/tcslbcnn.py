@@ -1,9 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Iterable, Sequence, Optional
+from typing import Optional
 
-import numpy as np
 import torch
 import torch.nn as nn
 
@@ -43,40 +43,87 @@ class ConvTCSLBP(nn.Conv2d):
             p.requires_grad_(False)
 
     def _init_weights(self, init: TCSLBCNNInitConfig) -> None:
-        rng = np.random.default_rng(init.seed)
+        """
+        Fast initializer: for each (oc, ic) picks:
+        - a threshold from init.thresholds
+        - a position from the 8 neighbors (excluding center)
+        - sets +thr at pos and -thr at opposite (8-pos)
+        Preserves skip_zero_indices behavior.
 
+        Note: This matches the *pattern* of the original initializer.
+        It will not match NumPy's exact random sequence bit-for-bit.
+        """
         with torch.no_grad():
-            weights = self.weight  # shape: [out, in, k, k]
+            weights = self.weight  # [out, in, 3, 3]
             out_ch, in_ch, kH, kW = weights.shape
-            assert kH == kW, "Only square kernels are supported in this initializer."
+            if (kH, kW) != (3, 3):
+                raise ValueError("This initializer currently supports only kernel_size=3.")
 
-            # Flatten kernel positions to index within k*k.
-            # Original code uses indices of a 3x3 neighborhood excluding center (index 4).
-            # For 3x3: indices 0..8, center=4.
-            kk = kH * kW
-            if kk != 9:
-                # For now we keep behavior consistent with original 3x3 implementation.
-                raise ValueError("This ConvTCSLBP initializer currently supports only kernel_size=3.")
+            # Start with all zeros
+            weights.zero_()
 
-            matrix = torch.zeros((out_ch, in_ch, kk), dtype=weights.dtype, device=weights.device)
-
-            index1 = np.array([0, 1, 2, 3, 5, 6, 7, 8], dtype=np.int64)
-
+            # Determine active ranges (preserve original skip behavior)
             in_start = 1 if init.skip_zero_indices else 0
             out_start = 1 if init.skip_zero_indices else 0
+            if in_start >= in_ch or out_start >= out_ch:
+                return  # nothing to fill
 
-            for ic in range(in_start, in_ch):
-                rng.shuffle(index1)
-                for oc in range(out_start, out_ch):
-                    thr = init.thresholds[int(rng.integers(0, len(init.thresholds)))]
-                    rand_idx = int(rng.integers(0, len(index1)))  # 0..7
-                    pos = int(index1[rand_idx])
-                    neg = int(8 - pos)
-                    matrix[oc, ic, pos] = float(thr)
-                    matrix[oc, ic, neg] = -float(thr)
+            # Torch RNG (fast, can run on GPU)
+            g = torch.Generator(device=weights.device)
+            if init.seed is not None:
+                g.manual_seed(int(init.seed))
 
-            matrix = matrix.view(out_ch, in_ch, kH, kW)
-            weights.copy_(matrix)
+            # Valid neighbor positions in flattened 3x3 excluding center (index 4)
+            # indices: 0 1 2 / 3 4 5 / 6 7 8
+            index1 = torch.tensor([0, 1, 2, 3, 5, 6, 7, 8], device=weights.device)
+
+            oc_count = out_ch - out_start
+            ic_count = in_ch - in_start
+
+            # Choose random threshold index per (oc, ic)
+            thr_idx = torch.randint(
+                low=0,
+                high=len(init.thresholds),
+                size=(oc_count, ic_count),
+                generator=g,
+                device=weights.device,
+            )
+
+            thresholds = torch.tensor(
+                list(init.thresholds), dtype=weights.dtype, device=weights.device
+            )
+            thr = thresholds[thr_idx]  # [oc_count, ic_count]
+
+            # Choose random neighbor index (0..7) per (oc, ic)
+            r = torch.randint(
+                low=0,
+                high=len(index1),
+                size=(oc_count, ic_count),
+                generator=g,
+                device=weights.device,
+            )
+            pos = index1[r]  # [oc_count, ic_count] in {0,1,2,3,5,6,7,8}
+            neg = 8 - pos  # opposite position
+
+            # Convert flattened indices to (row, col)
+            pos_r, pos_c = pos // 3, pos % 3
+            neg_r, neg_c = neg // 3, neg % 3
+
+            # Build index grids for oc, ic
+            oc_idx = (
+                torch.arange(out_start, out_ch, device=weights.device)
+                .view(-1, 1)
+                .expand(oc_count, ic_count)
+            )
+            ic_idx = (
+                torch.arange(in_start, in_ch, device=weights.device)
+                .view(1, -1)
+                .expand(oc_count, ic_count)
+            )
+
+            # Scatter +thr and -thr into weights
+            weights[oc_idx, ic_idx, pos_r, pos_c] = thr
+            weights[oc_idx, ic_idx, neg_r, neg_c] = -thr
 
 
 class TCSLBPBlock(nn.Module):

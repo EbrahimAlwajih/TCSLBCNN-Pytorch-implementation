@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from typing import Optional
 
@@ -7,7 +7,9 @@ from tqdm import tqdm
 
 
 @torch.no_grad()
-def calc_accuracy(model: torch.nn.Module, loader, device: Optional[torch.device] = None, verbose: bool = False) -> float:
+def calc_accuracy(
+    model: torch.nn.Module, loader, device: Optional[torch.device] = None, verbose: bool = False
+) -> float:
     """
     Compute classification accuracy.
 

@@ -1,0 +1,12 @@
+# Normalize text files
+* text=auto
+
+# Enforce LF for config/code to avoid BOM/CRLF surprises in CI
+*.py  text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+*.md  text eol=lf
+Dockerfile text eol=lf
