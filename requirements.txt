@@ -6,3 +6,5 @@ matplotlib
 
 pytest
 ruff
+
+tensorboard
