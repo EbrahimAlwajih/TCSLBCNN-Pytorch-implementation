@@ -1,0 +1,9 @@
+﻿services:
+  tcslbcnn:
+    build: .
+    container_name: tcslbcnn
+    volumes:
+      - ./data:/app/data
+      - ./artifacts:/app/artifacts
+    environment:
+      - PYTHONUNBUFFERED=1

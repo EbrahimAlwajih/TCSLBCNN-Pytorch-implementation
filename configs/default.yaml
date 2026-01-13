@@ -1,0 +1,10 @@
+﻿dataset: cifar10
+n_epochs: 80
+depth: 15
+batch_size: 16
+learning_rate: 0.001
+weight_decay: 0.0001
+lr_scheduler_step: 30
+seed: 1337
+checkpoint_path: artifacts/models/tcslbcnn_best.pt
+run_dir: artifacts/runs
