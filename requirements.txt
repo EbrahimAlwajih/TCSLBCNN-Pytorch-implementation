@@ -10,3 +10,5 @@ ruff
 tensorboard
 
 pytest-cov
+
+pytest-cov
