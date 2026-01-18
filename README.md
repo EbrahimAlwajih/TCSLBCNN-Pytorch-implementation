@@ -118,4 +118,23 @@ MIT License.
 
 ## Citation
 
-If you use this implementation in academic work, please cite the original TCS-LBCNN paper and reference this repository.
+If you use this implementation in academic or research work, please cite the following paper:
+
+> **E. Al-wajih and R. Ghazali**,
+> *Threshold center-symmetric local binary convolutional neural networks for bilingual handwritten digit recognition*,
+> **Knowledge-Based Systems**, vol. 259, Article 110079, 2023.
+> https://doi.org/10.1016/j.knosys.2022.110079
+
+### BibTeX
+```bibtex
+@article{ALWAJIH2023110079,
+  title   = {Threshold center-symmetric local binary convolutional neural networks for bilingual handwritten digit recognition},
+  author  = {Al-wajih, Ebrahim and Ghazali, Rozaida},
+  journal = {Knowledge-Based Systems},
+  volume  = {259},
+  pages   = {110079},
+  year    = {2023},
+  issn    = {0950-7051},
+  doi     = {10.1016/j.knosys.2022.110079},
+  url     = {https://www.sciencedirect.com/science/article/pii/S0950705122011753}
+}
