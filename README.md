@@ -1,185 +1,121 @@
 ﻿# TCSLBCNN (PyTorch)
 
-PyTorch implementation of **TCS-LBCNN** with a modernized repository layout (packaged module, tests, CI, and Docker support).
+A PyTorch implementation of **TCS-LBCNN**, a lightweight convolutional neural network that uses fixed sparse local binary pattern–inspired filters combined with learnable 1×1 convolutions.
 
-## Features
-
-- Train and evaluate on:
-  - **MNIST**
-  - **CIFAR10** (optionally resized to 28x28 as configured in code)
-- Reproducible training artifacts:
-  - Checkpoints under `artifacts/models/`
-  - TensorBoard runs under `artifacts/runs/`
-- Developer tooling:
-  - Ruff linting + formatting
-  - Pytest unit tests
-  - GitHub Actions workflows (Quality Gate, Security Scan, Container Build, Release, GHCR publish, Coverage)
+This repository provides:
+- A clean, installable Python package
+- Ready-to-use Docker images
+- Reproducible training and evaluation workflows
 
 ---
 
-## Repository structure
+## What is TCS-LBCNN?
 
-- `src/tcslbcnn/` — installable Python package
-- `tests/` — unit tests
-- `scripts/` — developer helper scripts
-- `artifacts/` — runtime outputs (created at runtime; not committed)
+TCS-LBCNN replaces standard 3×3 convolution kernels with **fixed, sparse, directional contrast filters** (two non-zero weights per kernel) followed by learnable channel mixing.
+
+**Benefits**
+- Fewer trainable parameters
+- Strong inductive bias for local texture and edge patterns
+- Suitable for lightweight or constrained environments
 
 ---
 
-## Local setup (Windows)
+## Supported datasets
 
-> Use the venv Python explicitly to avoid mixing with Anaconda/system Python.
+- **MNIST**
+- **CIFAR-10** (optionally resized to 28×28 as configured)
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip setuptools wheel
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m pip install -e .
-````
+---
 
-### Run lint + tests
+## Quick start (Docker – recommended)
 
-```powershell
-.\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m pytest -q
-```
+The easiest way to use this project is via Docker.
+No Python installation required.
 
-### Dev helper script (Windows)
-
-```powershell
-.\scripts\dev.ps1 -Task lint
-.\scripts\dev.ps1 -Task test
-.\scripts\dev.ps1 -Task smoke
-```
-
-Linux/macOS:
+### Pull the latest image
 
 ```bash
-./scripts/dev.sh lint
-./scripts/dev.sh test
-./scripts/dev.sh smoke
-```
-
----
-
-## Training and evaluation
-
-### Train (MNIST smoke example)
-
-```powershell
-.\.venv\Scripts\python.exe -c "from tcslbcnn.training import train; train(dataset='mnist', n_epochs=1, batch_size=64, use_compile=False)"
-```
-
-### Train (CIFAR10 example)
-
-```powershell
-.\.venv\Scripts\python.exe -c "from tcslbcnn.training import train; train(dataset='cifar10', n_epochs=1, batch_size=64, use_compile=False)"
-```
-
-### Evaluate a checkpoint
-
-```powershell
-.\.venv\Scripts\python.exe -c "from tcslbcnn.training import test; test(checkpoint_path='artifacts/models/tcslbcnn_best.pt')"
-```
-
----
-
-## TensorBoard
-
-```powershell
-.\.venv\Scripts\python.exe -m tensorboard --logdir artifacts/runs
-```
-
----
-
-## Docker (local build)
-
-### Build image
-
-```powershell
-docker build -t tcslbcnn:local .
-```
-
-### Verify package import inside the container
-
-```powershell
-docker run --rm tcslbcnn:local python -c "import tcslbcnn; print('tcslbcnn ok')"
-```
-
-### Run unit tests in the container (CI-like)
-
-```powershell
-docker run --rm tcslbcnn:local python -m pytest -q
-```
-
-### Training smoke in the container (downloads MNIST inside the container)
-
-```powershell
-docker run --rm tcslbcnn:local python -c "from tcslbcnn.training import train; train(dataset='mnist', n_epochs=1, batch_size=64, use_compile=False)"
-```
-
-### Persist data and artifacts (recommended)
-
-```powershell
-mkdir .\data -Force | Out-Null
-mkdir .\artifacts -Force | Out-Null
-
-docker run --rm `
-  -v "${PWD}\data:/app/data" `
-  -v "${PWD}\artifacts:/app/artifacts" `
-  tcslbcnn:local `
-  python -c "from tcslbcnn.training import train; train(dataset='mnist', n_epochs=1, batch_size=64, run_dir='artifacts/runs', checkpoint_path='artifacts/models/tcslbcnn_best.pt', use_compile=False)"
-```
-
-> If your Dockerfile uses a different `WORKDIR` than `/app`, adjust the mount paths accordingly.
-
----
-
-## GHCR (published container)
-
-After the **Container Publish** workflow runs, pull and run the published image:
-
-```powershell
 docker pull ghcr.io/ebrahimalwajih/tcslbcnn-pytorch-implementation:latest
-docker run --rm ghcr.io/ebrahimalwajih/tcslbcnn-pytorch-implementation:latest python -m pytest -q
+````
+
+### Verify installation
+
+```bash
+docker run --rm ghcr.io/ebrahimalwajih/tcslbcnn-pytorch-implementation:latest \
+  python -c "import tcslbcnn; print('tcslbcnn ready')"
+```
+
+### Train (MNIST example)
+
+```bash
+docker run --rm \
+  ghcr.io/ebrahimalwajih/tcslbcnn-pytorch-implementation:latest \
+  python -c "from tcslbcnn.training import train; train(dataset='mnist', n_epochs=1, batch_size=64, use_compile=False)"
 ```
 
 ---
 
-## Release workflow (tags)
+## Running locally (Python)
 
-To create a release, tag and push:
+### Requirements
 
-```powershell
-git tag v0.1.0
-git push origin v0.1.0
+* Python ≥ 3.10
+* pip
+
+### Install
+
+```bash
+pip install -r requirements.txt
+pip install -e .
 ```
 
-This triggers the Release workflow to publish a GitHub Release and attach build artifacts.
+### Train
+
+```bash
+python -c "from tcslbcnn.training import train; train(dataset='mnist', n_epochs=1, batch_size=64, use_compile=False)"
+```
 
 ---
 
-## Troubleshooting
+## Output artifacts
 
-### `pytest` can’t import `tcslbcnn`
+During training, the following directories are created:
 
-You are likely running pytest using a different Python (e.g., Anaconda). Use the venv Python:
+* `artifacts/models/` — model checkpoints
+* `artifacts/runs/` — TensorBoard logs
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\python.exe -m pytest -q
+To view training metrics:
+
+```bash
+tensorboard --logdir artifacts/runs
 ```
 
-### PowerShell cannot activate venv (ExecutionPolicy)
+---
 
-Instead of activating, use the venv python directly:
+## Project structure
 
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q
 ```
+src/tcslbcnn/      Core Python package
+tests/             Unit tests
+artifacts/          Training outputs (not committed)
+```
+
+---
+
+## Reproducibility
+
+* Fixed initialization for TCS-LBP filters
+* Deterministic training options
+* Docker images ensure environment consistency
 
 ---
 
 ## License
 
-MIT (see `LICENSE` if present).
+MIT License.
+
+---
+
+## Citation
+
+If you use this implementation in academic work, please cite the original TCS-LBCNN paper and reference this repository.
